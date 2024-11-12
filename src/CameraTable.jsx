@@ -1,24 +1,43 @@
-// CameraTable.js
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-// import cameraData from "./constants";
 import brand from "./assets/brand.png";
 import { FaSearch } from "react-icons/fa";
-import {
-  MdKeyboardArrowRight,
-  MdKeyboardArrowLeft,
-  MdOutlineKeyboardDoubleArrowRight,
-  MdOutlineKeyboardDoubleArrowLeft,
-  MdOutlineWbCloudy,
-} from "react-icons/md";
+import { MdOutlineWbCloudy } from "react-icons/md";
 import { RxCircleBackslash } from "react-icons/rx";
 import { BsHddStack } from "react-icons/bs";
+import {
+  MdOutlineKeyboardDoubleArrowLeft,
+  MdKeyboardArrowLeft,
+  MdKeyboardArrowRight,
+  MdOutlineKeyboardDoubleArrowRight,
+  MdDelete,
+} from "react-icons/md";
 
 export default function CameraTable() {
   const [cameraData, setCameraData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [locationFilter, setLocationFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  useEffect(() => {
+    // Fetch data initially and save it to localStorage
+    const storedData = localStorage.getItem("cameraData");
+    if (storedData) {
+      setCameraData(JSON.parse(storedData));
+    } else {
+      fetchCameraData();
+    }
+  }, []);
+
+  useEffect(() => {
+    // Filter the data whenever any filter changes
+    filterData();
+  }, [cameraData, locationFilter, statusFilter, searchQuery]);
 
   const fetchCameraData = async () => {
     const url = "https://api-app-staging.wobot.ai/app/v1/fetch/cameras";
@@ -35,24 +54,74 @@ export default function CameraTable() {
 
       if (response.ok) {
         const data = await response.json();
-        setCameraData(data.data); // Assuming data structure has a "data" property
-        setTotalItems(data.data.length); // Get total number of items from the API response
+        setCameraData(data.data);
+        localStorage.setItem("cameraData", JSON.stringify(data.data)); // Store data in localStorage
       } else {
         console.error("Failed to fetch data:", response.status);
       }
     } catch (error) {
-      console.log("Error Fetching Data:, error");
+      console.log("Error Fetching Data:", error);
     }
   };
 
-  useEffect(() => {
-    fetchCameraData();
-  }, []);
+  const handleDelete = () => {
+    // Confirm before deleting
+    if (window.confirm("Are you sure you want to delete selected items?")) {
+      // Filter out the selected items
+      const newData = cameraData.filter(
+        (item) => !selectedItems.includes(item.id)
+      );
+
+      // Update state with the remaining items
+      setCameraData(newData);
+      setSelectedItems([]); // Reset selected items
+    }
+  };
+
+  const filterData = () => {
+    let filtered = cameraData;
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (item) =>
+          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.recorder.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.status.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply location filter
+    if (locationFilter) {
+      filtered = filtered.filter((item) =>
+        item.location.toLowerCase().includes(locationFilter.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter) {
+      filtered = filtered.filter((item) =>
+        item.status.toLowerCase().includes(statusFilter.toLowerCase())
+      );
+    }
+
+    setFilteredData(filtered);
+    setTotalItems(filtered.length);
+  };
+
+  const handleCheckboxChange = (id) => {
+    setSelectedItems((prevSelectedItems) =>
+      prevSelectedItems.includes(id)
+        ? prevSelectedItems.filter((item) => item !== id)
+        : [...prevSelectedItems, id]
+    );
+  };
 
   // Pagination logic
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentItems = cameraData.slice(startIndex, endIndex);
+  const currentItems = filteredData.slice(startIndex, endIndex);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -66,14 +135,6 @@ export default function CameraTable() {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
-  };
-
-  const handleFirstPage = () => {
-    setCurrentPage(1);
-  };
-
-  const handleLastPage = () => {
-    setCurrentPage(totalPages);
   };
 
   const handleItemsPerPageChange = (event) => {
@@ -92,26 +153,51 @@ export default function CameraTable() {
           <Subtitle>Manage your cameras here.</Subtitle>
         </TitleSection>
         <SearchBar>
-          <SearchInput placeholder="Search" />
+          <SearchInput
+            placeholder="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
           <FaSearch />
         </SearchBar>
       </Header>
 
       <Filters>
-        <Dropdown>
-          <option>Location</option>
-          {/* Add location options here */}
+        <Dropdown
+          value={locationFilter}
+          onChange={(e) => setLocationFilter(e.target.value)}
+        >
+          <option value="">Location</option>
+          <option value="Denver, CO">Denver, CO</option>
+          <option value="San Diego, CA">San Diego, CA</option>
+          <option value="Chicago, IL">Chicago, IL</option>
         </Dropdown>
-        <Dropdown>
-          <option>Status</option>
-          {/* Add status options here */}
+        <Dropdown
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="">Status</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
         </Dropdown>
       </Filters>
       <div style={{ overflowX: "auto" }}>
         <Table>
           <TableHeader>
             <Row>
-              <HeaderCell>Name</HeaderCell>
+              <HeaderCell>
+                <ActionBox>
+                  Name
+                  {selectedItems.length > 0 && (
+                    <MdDelete
+                      onClick={() => handleDelete()}
+                      color="tomato"
+                      size={20}
+                      cursor={"pointer"}
+                    />
+                  )}
+                </ActionBox>
+              </HeaderCell>
               <HeaderCell>Health</HeaderCell>
               <HeaderCell>Location</HeaderCell>
               <HeaderCell>Recorder</HeaderCell>
@@ -124,12 +210,19 @@ export default function CameraTable() {
             {currentItems.map((item) => (
               <Row key={item._id}>
                 <Cell>
-                  <input type="checkbox" /> {item.name}
+                  <ActionBox>
+                    <input
+                      type="checkbox"
+                      checked={selectedItems.includes(item.id)}
+                      onChange={() => handleCheckboxChange(item.id)}
+                    />
+                    {item.name}
+                  </ActionBox>
                 </Cell>
+
                 <Cell>
                   <HealthColumn>
                     <MdOutlineWbCloudy />
-                    {}
                     <Circle color={item.health.cloud}>
                       {item.health.cloud}
                     </Circle>
@@ -142,9 +235,7 @@ export default function CameraTable() {
                 <Cell>{item.location}</Cell>
                 <Cell>{item.recorder || "N/A"}</Cell>
                 <Cell>{item.tasks}</Cell>
-                <Cell>
-                  <StatusBadge status={item.status}>{item.status}</StatusBadge>
-                </Cell>
+                <Cell>{item.status}</Cell>
                 <Cell>
                   <RxCircleBackslash color="grey" />
                 </Cell>
@@ -156,7 +247,6 @@ export default function CameraTable() {
 
       <Pagination>
         <div>
-          {/* Dropdown for selecting items per page */}
           <select value={itemsPerPage} onChange={handleItemsPerPageChange}>
             <option value={5}>5</option>
             <option value={10}>10</option>
@@ -168,20 +258,19 @@ export default function CameraTable() {
           {startIndex + 1}-{endIndex} of {totalItems}
         </span>
         <MdOutlineKeyboardDoubleArrowLeft
-          onClick={handleFirstPage}
+          onClick={() => setCurrentPage(1)}
           disabled={currentPage === 1}
         />
         <MdKeyboardArrowLeft
           onClick={handlePreviousPage}
           disabled={currentPage === 1}
         />
-
         <MdKeyboardArrowRight
           onClick={handleNextPage}
           disabled={currentPage === totalPages}
         />
         <MdOutlineKeyboardDoubleArrowRight
-          onClick={handleLastPage}
+          onClick={() => setCurrentPage(totalPages)}
           disabled={currentPage === totalPages}
         />
       </Pagination>
@@ -364,4 +453,10 @@ const Circle = styled.div`
       border-box;
     mask: radial-gradient(closest-side, transparent 74%, black) border-box;
   }
+`;
+
+const ActionBox = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
