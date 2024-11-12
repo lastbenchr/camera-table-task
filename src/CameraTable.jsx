@@ -293,6 +293,7 @@ const Row = styled.tr`
 const Cell = styled.td`
   padding: 20px;
   text-align: left;
+  min-width: 90px;
 `;
 
 const StatusBadge = styled.span`
