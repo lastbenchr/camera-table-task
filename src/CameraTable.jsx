@@ -235,7 +235,9 @@ export default function CameraTable() {
                 <Cell>{item.location}</Cell>
                 <Cell>{item.recorder || "N/A"}</Cell>
                 <Cell>{item.tasks}</Cell>
-                <Cell>{item.status}</Cell>
+                <Cell>
+                  <StatusBadge status={item.status}>{item.status}</StatusBadge>
+                </Cell>
                 <Cell>
                   <RxCircleBackslash color="grey" />
                 </Cell>
@@ -244,7 +246,7 @@ export default function CameraTable() {
           </tbody>
         </Table>
       </div>
-
+      {/* pagination UI goes here... */}
       <Pagination>
         <div>
           <select value={itemsPerPage} onChange={handleItemsPerPageChange}>
