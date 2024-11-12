@@ -107,49 +107,52 @@ export default function CameraTable() {
           {/* Add status options here */}
         </Dropdown>
       </Filters>
-
-      <Table>
-        <TableHeader>
-          <Row>
-            <HeaderCell>Name</HeaderCell>
-            <HeaderCell>Health</HeaderCell>
-            <HeaderCell>Location</HeaderCell>
-            <HeaderCell>Recorder</HeaderCell>
-            <HeaderCell>Tasks</HeaderCell>
-            <HeaderCell>Status</HeaderCell>
-            <HeaderCell>Actions</HeaderCell>
-          </Row>
-        </TableHeader>
-        <tbody>
-          {currentItems.map((item) => (
-            <Row key={item._id}>
-              <Cell>
-                <input type="checkbox" /> {item.name}
-              </Cell>
-              <Cell>
-                <HealthColumn>
-                  <MdOutlineWbCloudy />
-                  {}
-                  <Circle color={item.health.cloud}>{item.health.cloud}</Circle>
-                  <BsHddStack />
-                  <Circle color={item.health.device}>
-                    {item.health.device}
-                  </Circle>
-                </HealthColumn>
-              </Cell>
-              <Cell>{item.location}</Cell>
-              <Cell>{item.recorder || "N/A"}</Cell>
-              <Cell>{item.tasks}</Cell>
-              <Cell>
-                <StatusBadge status={item.status}>{item.status}</StatusBadge>
-              </Cell>
-              <Cell>
-                <RxCircleBackslash color="grey" />
-              </Cell>
+      <div style={{ overflowX: "auto" }}>
+        <Table>
+          <TableHeader>
+            <Row>
+              <HeaderCell>Name</HeaderCell>
+              <HeaderCell>Health</HeaderCell>
+              <HeaderCell>Location</HeaderCell>
+              <HeaderCell>Recorder</HeaderCell>
+              <HeaderCell>Tasks</HeaderCell>
+              <HeaderCell>Status</HeaderCell>
+              <HeaderCell>Actions</HeaderCell>
             </Row>
-          ))}
-        </tbody>
-      </Table>
+          </TableHeader>
+          <tbody>
+            {currentItems.map((item) => (
+              <Row key={item._id}>
+                <Cell>
+                  <input type="checkbox" /> {item.name}
+                </Cell>
+                <Cell>
+                  <HealthColumn>
+                    <MdOutlineWbCloudy />
+                    {}
+                    <Circle color={item.health.cloud}>
+                      {item.health.cloud}
+                    </Circle>
+                    <BsHddStack />
+                    <Circle color={item.health.device}>
+                      {item.health.device}
+                    </Circle>
+                  </HealthColumn>
+                </Cell>
+                <Cell>{item.location}</Cell>
+                <Cell>{item.recorder || "N/A"}</Cell>
+                <Cell>{item.tasks}</Cell>
+                <Cell>
+                  <StatusBadge status={item.status}>{item.status}</StatusBadge>
+                </Cell>
+                <Cell>
+                  <RxCircleBackslash color="grey" />
+                </Cell>
+              </Row>
+            ))}
+          </tbody>
+        </Table>
+      </div>
 
       <Pagination>
         <div>
