@@ -192,6 +192,15 @@ export default function CameraTable() {
 // syling of table goes here.....
 const Container = styled.div`
   padding: 35px;
+
+  /* Example media query for smaller screens */
+  @media (max-width: 768px) {
+    padding: calc(10px + 2vw);
+  }
+
+  @media (min-width: 1200px) {
+    padding: calc(40px + 1vw);
+  }
 `;
 const ImageWrapper = styled.div`
   display: flex;
